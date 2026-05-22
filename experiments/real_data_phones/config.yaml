@@ -1,0 +1,39 @@
+name: real_data_phones
+description: |
+  Real-data illustration: the Belgium telephone-calls benchmark of
+  Rousseeuw & Leroy (1987), regressing annual call totals on year. Recording
+  years 1964-1969 were logged in a different unit (total minutes), producing a
+  block of six gross vertical outliers (plus 1970 as a partial transition).
+  This is a pure error-contamination case with NO x-leverage, so it isolates
+  the weak-moment family's design regime (vertical outliers) and avoids the
+  unbounded-leverage caveat of the degree-1 score discussed in the
+  design-stress study.
+
+  We fit OLS, LAD, Huber, Tukey biweight, high-breakdown S and MM, a plug-in
+  Cauchy MLE, weak-PMM degree 1 and 3 (window/scale sweep), and the weak-CF
+  estimator, then report point estimates, sandwich/bootstrap inference, the
+  recovered slope, and which observations are flagged as outliers.
+
+data_file: data.csv
+response: calls
+predictor: year
+center_year: true        # regress on (year - mean(year)) for conditioning
+
+known_outlier_years: [64, 65, 66, 67, 68, 69]
+
+windows:
+  - {family: gaussian,      scale_mults: [0.5, 1.0, 1.5, 2.0, 3.0, 5.0]}
+  - {family: cauchy_like,   scale_mults: [0.5, 1.0, 1.5, 2.0, 3.0, 5.0]}
+  - {family: tukey_compact, scale_mults: [0.5, 1.0, 1.5, 2.0, 3.0, 5.0]}
+  - {family: hann_value,    scale_mults: [0.5, 1.0, 1.5, 2.0, 3.0, 5.0]}
+
+scale_unit: "scale = scale_mult * MAD(residual_from_LAD_initial)/0.6745"
+bootstrap:
+  n_boot: 2000
+  level: 0.95
+  seed: 20260522
+
+source: |
+  P. J. Rousseeuw & A. M. Leroy (1987), Robust Regression & Outlier Detection,
+  Wiley. Distributed as the `phones` dataset in the R package MASS (calls in
+  millions; year is the last two digits of 1950-1973).
