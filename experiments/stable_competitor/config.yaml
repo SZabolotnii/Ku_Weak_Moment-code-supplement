@@ -1,0 +1,10 @@
+name: stable_competitor
+description: |
+  Phase 2d / referee Q8: replace the misspecified Cauchy-MLE proxy with the
+  correctly-specified alpha-stable MLE (scipy levy_stable) in the alpha-stable
+  regime, and recompute efficiencies. Focused run (one regime, modest R) due to
+  the cost of the stable likelihood (~10 s/fit).
+sample_size: 256
+replications: 40
+alpha: 1.2
+base_seed: 20260607

@@ -1,0 +1,27 @@
+name: cauchy_regression_pmm
+description: |
+  Linear regression y_i = beta_0 + beta_1 * x_i + eps_i with Cauchy and
+  related heavy-tailed errors. Compares OLS, LAD, Huber, Tukey biweight,
+  classical PMM-2, Cauchy MLE (known gamma), and weak PMM across four
+  window families. Mid-budget run (R=500) for report figures.
+
+beta_true: [0.5, 1.0]
+gamma_grid: [1.0]
+sample_sizes: [64, 128, 256, 512, 1024]
+replications: 500
+base_seed: 20260521
+
+x_design: uniform_-1_1
+
+windows:
+  - {family: gaussian,      scale_mults: [0.5, 1.0, 1.5, 2.0, 3.0, 5.0]}
+  - {family: cauchy_like,   scale_mults: [0.5, 1.0, 1.5, 2.0, 3.0, 5.0]}
+  - {family: tukey_compact, scale_mults: [0.5, 1.0, 1.5, 2.0, 3.0, 5.0]}
+  - {family: hann_value,    scale_mults: [0.5, 1.0, 1.5, 2.0, 3.0, 5.0]}
+
+regimes:
+  - {name: pure_cauchy, kind: cauchy, gamma: 1.0}
+  - {name: contaminated_gaussian, kind: contam, eps: 0.10, scale_contam: 10.0}
+  - {name: student_t_df2, kind: t, df: 2.0}
+
+scale_unit: "scale = scale_mult * MAD(residual_from_LAD_initial)/0.6745"

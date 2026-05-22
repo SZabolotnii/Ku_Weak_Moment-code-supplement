@@ -1,0 +1,24 @@
+name: cauchy_location
+description: |
+  1D Cauchy location estimation: y_i = mu_true + Cauchy(0, gamma).
+  Compares sample mean, median, Cauchy MLE (known gamma), Tukey biweight,
+  and weak PMM under all four window families across a sigma sweep.
+
+mu_true: 1.0
+gamma_grid: [0.5, 1.0, 2.0]
+sample_sizes: [64, 128, 256, 512, 1024]
+replications: 1000
+base_seed: 20260520
+
+windows:
+  - {family: gaussian,      scale_mults: [0.5, 1.0, 1.5, 2.0, 3.0, 5.0, 10.0]}
+  - {family: cauchy_like,   scale_mults: [0.5, 1.0, 1.5, 2.0, 3.0, 5.0, 10.0]}
+  - {family: tukey_compact, scale_mults: [1.5, 3.0, 4.685, 6.0, 10.0]}
+  - {family: hann_value,    scale_mults: [1.5, 3.0, 4.685, 6.0, 10.0]}
+
+scale_unit: "scale = scale_mult * MAD(y - median(y))/0.6745"
+
+contamination_regimes:
+  - {name: pure_cauchy, kind: cauchy}
+  - {name: contaminated_gaussian, kind: contam, eps: 0.10, scale_contam: 10.0}
+  - {name: student_t_df2, kind: t, df: 2.0}

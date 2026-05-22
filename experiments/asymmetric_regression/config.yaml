@@ -1,0 +1,33 @@
+name: asymmetric_regression
+description: |
+  W2: linear regression y = b0 + b1*x + eps with ASYMMETRIC error
+  distributions. Tests whether degree-2 weak PMM (using windowed gamma_3^w)
+  provides bias correction over degree-1 (= M-estimator family).
+
+  Three asymmetric regimes:
+    - skewed_contam: 90% N(0,1) + 10% Cauchy shifted by +5 (one-sided burst)
+    - skew_t:        skew-Student-t df=3, alpha=4 (mixture form)
+    - alpha_stable:  alpha-stable with alpha=1.5, beta=0.5 (skewed stable)
+
+  We expect degree-1 weak PMM (M-estimator family) to have systematic
+  location bias under asymmetric noise; degree-2 should correct it.
+
+beta_true: [0.5, 1.0]
+sample_sizes: [128, 256, 512, 1024]
+replications: 500
+base_seed: 20260522
+
+x_design: uniform_-1_1
+
+windows:
+  - {family: gaussian,      scale_mults: [1.0, 1.5, 2.0, 3.0]}
+  - {family: cauchy_like,   scale_mults: [1.0, 1.5, 2.0, 3.0]}
+  - {family: tukey_compact, scale_mults: [1.5, 3.0, 4.685, 6.0]}
+  - {family: hann_value,    scale_mults: [1.5, 3.0, 4.685, 6.0]}
+
+regimes:
+  - {name: skewed_contam,  kind: skewed_contam, eps: 0.10, shift: 5.0, scale_contam: 1.0}
+  - {name: skew_t_df3,     kind: skew_t, df: 3.0, alpha_skew: 4.0}
+  - {name: alpha_stable,   kind: alpha_stable, alpha: 1.5, beta: 0.5}
+
+scale_unit: "scale = scale_mult * MAD(LAD residuals)/0.6745"

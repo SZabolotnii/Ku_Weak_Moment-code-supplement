@@ -1,0 +1,19 @@
+# Python compiled artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Generated experiment outputs (regenerate with run.py / plot.py)
+experiments/*/results/
+experiments/*/figures/
+
+# Lean build cache (rebuild with `lake build`; do NOT commit)
+.lake/
+*.olean
+*.ilean
+
+# macOS
+.DS_Store

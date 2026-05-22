@@ -1,0 +1,29 @@
+name: full_mc
+description: |
+  W4: paper-grade Monte Carlo for the weak-PMM regression study.
+  Combines symmetric and asymmetric regimes, degree-1 and degree-2 weak
+  PMM, full baseline set. Window grids reduced to the plateau region
+  identified in W1/W2 (3 scales per family) to keep runtime tractable
+  while preserving statistical resolution.
+
+beta_true: [0.5, 1.0]
+sample_sizes: [64, 128, 256, 512, 1024]
+replications: 5000
+base_seed: 20260524
+
+x_design: uniform_-1_1
+
+windows:
+  - {family: gaussian,      scale_mults: [1.0, 1.5, 2.0]}
+  - {family: cauchy_like,   scale_mults: [0.5, 1.0, 1.5]}
+  - {family: tukey_compact, scale_mults: [3.0, 4.685, 6.0]}
+  - {family: hann_value,    scale_mults: [3.0, 4.685, 6.0]}
+
+regimes:
+  - {name: pure_cauchy,           kind: cauchy, gamma: 1.0}
+  - {name: contaminated_gaussian, kind: contam, eps: 0.10, scale_contam: 10.0}
+  - {name: student_t_df2,         kind: t, df: 2.0}
+  - {name: skewed_contam,         kind: skewed_contam, eps: 0.10, shift: 5.0, scale_contam: 1.0}
+  - {name: alpha_stable_skew,     kind: alpha_stable, alpha: 1.5, beta: 0.5}
+
+scale_unit: "scale = scale_mult * MAD(LAD residuals)/0.6745"

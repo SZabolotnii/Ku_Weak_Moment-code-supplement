@@ -1,0 +1,18 @@
+name: cf_weighting
+description: |
+  Phase 2c / referee Q5: weak-CF tuning sensitivity. Sweeps the frequency grid
+  (n_freq, u_max_mult) and the GMM weighting (identity vs efficient two-step
+  W=Omega^{-1}) on heavy-tailed regimes, reporting MAE stability and the
+  identification diagnostic (smallest singular value of the moment Jacobian).
+
+sample_size: 256
+replications: 300
+base_seed: 20260605
+
+noises:
+  - {name: cauchy,         kind: cauchy}
+  - {name: alpha_stable_12, kind: alpha_stable, alpha: 1.2}
+
+n_freqs: [8, 16, 24, 48]
+u_max_mults: [0.5, 1.0, 2.0]
+weightings: [identity, 2step]

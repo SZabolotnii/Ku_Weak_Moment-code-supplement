@@ -1,0 +1,29 @@
+name: bandwidth_study
+description: |
+  Efficiency-vs-bandwidth curves: degree-1 vs degree-3 weak PMM on symmetric
+  heavy-tail regression, with a fine window-scale sweep. Tests the W5 finding
+  that the cubic PMM-3 term flattens the bandwidth-sensitivity curve.
+
+  Efficiency metric: eff(estimator) = MAE(matched MLE) / MAE(estimator),
+  plotted vs scale_mult. eff = 1 means MLE-optimal; lower means worse. The
+  hypothesis: degree-1 efficiency falls off at wide bandwidth, degree-3 stays
+  flatter (the cubic kurtosis term compensates for an over-wide window).
+
+beta_true: [0.5, 1.0]
+sample_sizes: [256, 1024]
+replications: 5000
+base_seed: 20260528
+
+x_design: uniform_-1_1
+
+# fine scale sweeps (units of MAD/0.6745)
+windows:
+  - {family: gaussian,      scale_mults: [0.75, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 7.0]}
+  - {family: tukey_compact, scale_mults: [2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 12.0]}
+
+regimes:
+  - {name: pure_cauchy,     kind: cauchy, gamma: 1.0, mle: cauchy, mle_df: 1.0}
+  - {name: student_t_df1p5, kind: t,      df: 1.5,    mle: t,      mle_df: 1.5}
+  - {name: student_t_df3,   kind: t,      df: 3.0,    mle: t,      mle_df: 3.0}
+
+scale_unit: "scale = scale_mult * MAD(LAD residuals)/0.6745"

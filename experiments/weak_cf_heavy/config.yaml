@@ -1,0 +1,35 @@
+name: weak_cf_heavy
+description: |
+  W7: model-free weak-CF vs degree-1/degree-3 weak PMM on VERY heavy-tailed
+  symmetric regression, where windowed high moments are most fragile.
+
+  Hypothesis: the bounded CF score sin(u*r) sidesteps the moment-order
+  fragility that limits weak PMM-3 (raw/windowed m_6 unstable). weak-CF should
+  match or beat moment-PMM precisely on alpha-stable alpha<1.5, where even a
+  fast-decay window struggles to stabilise high windowed moments.
+
+beta_true: [0.5, 1.0]
+sample_sizes: [128, 256, 512, 1024]
+replications: 5000
+base_seed: 20260530
+
+x_design: uniform_-1_1
+
+# weak PMM windows (fast-decay only, per the m6^w diagnostic)
+pmm_windows:
+  - {family: gaussian,      scale_mults: [1.0, 1.5, 2.0]}
+  - {family: tukey_compact, scale_mults: [3.0, 4.685, 6.0]}
+
+# weak-CF frequency grids (Simple-CF)
+cf_grids:
+  - {n_freq: 24, u_max_mult: 0.5}
+  - {n_freq: 24, u_max_mult: 1.0}
+  - {n_freq: 32, u_max_mult: 1.0}
+
+regimes:
+  - {name: cauchy,            kind: cauchy, gamma: 1.0,  mle: cauchy, mle_df: 1.0}
+  - {name: student_t_df1p5,   kind: t,      df: 1.5,     mle: t,      mle_df: 1.5}
+  - {name: alpha_stable_a1p2, kind: alpha_stable, alpha: 1.2, beta: 0.0, mle: cauchy, mle_df: 1.0}
+  - {name: alpha_stable_a1p5, kind: alpha_stable, alpha: 1.5, beta: 0.0, mle: cauchy, mle_df: 1.0}
+
+scale_unit: "weak PMM scale = scale_mult * MAD(LAD resid)/0.6745; CF u_max = u_max_mult * pi / MAD"

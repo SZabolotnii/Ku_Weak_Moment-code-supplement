@@ -1,0 +1,36 @@
+name: weak_moment_sanity
+description: |
+  Pre-estimator sanity checks for value-domain windowed moments. Verifies
+  three foundational claims required by the rest of the program:
+    (a) wide-window recovery on clean Gaussian data;
+    (b) MC concentration of m_2^w on Cauchy where raw m_2 diverges;
+    (c) boundedness of m_2^w under heavy contamination where raw m_2 diverges.
+
+distributions:
+  - name: gaussian
+    params: {loc: 0.0, scale: 1.0}
+    raw_m2_truth: 1.0
+  - name: student_t
+    params: {df: 3.0}
+    raw_m2_truth: 3.0   # variance of t_3 = df/(df-2) = 3
+  - name: cauchy
+    params: {loc: 0.0, scale: 1.0}
+    raw_m2_truth: null
+  - name: contaminated_gaussian
+    params: {eps: 0.05, scale_contam: 10.0}
+    raw_m2_truth: null
+
+sample_sizes: [64, 256, 1024, 4096]
+replications: 2000
+
+windows:
+  - {family: gaussian,      scale_mults: [0.5, 1.0, 2.0, 5.0, 10.0, 100.0]}
+  - {family: cauchy_like,   scale_mults: [0.5, 1.0, 2.0, 5.0, 10.0, 100.0]}
+  - {family: tukey_compact, scale_mults: [1.5, 3.0, 5.0, 10.0, 30.0]}
+  - {family: hann_value,    scale_mults: [1.5, 3.0, 5.0, 10.0, 30.0]}
+
+scale_unit:
+  type: fixed_unit
+  description: "scale = scale_mult * 1.0 (distributions are unit-scale)"
+
+base_seed: 20260519

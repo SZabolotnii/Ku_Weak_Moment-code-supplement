@@ -1,0 +1,28 @@
+name: design_stress
+description: |
+  Phase 2a (referee): stress the design, not just the noise. Tests whether the
+  degree/bandwidth/frequency interchangeability and the robustness of the
+  weak-moment estimators survive under (i) heavy-tailed covariates, (ii) high
+  leverage points, and (iii) heteroskedastic errors -- conditions absent from
+  the Uniform(-1,1) panel. Includes high-breakdown S/MM baselines, since
+  redescending M-estimators (degree-1 weak PMM) have UNBOUNDED influence in the
+  x-direction and are expected to degrade under leverage.
+
+beta_true: [0.5, 1.0]
+sample_sizes: [256]
+replications: 200
+base_seed: 20260601
+
+designs:
+  - {name: uniform,         kind: uniform}
+  - {name: heavy_x_t3,      kind: heavy_x, df: 3.0}
+  - {name: leverage,        kind: leverage, frac: 0.03, lev: 6.0}
+  - {name: heteroskedastic, kind: hetero, slope: 2.0}
+
+noises:
+  - {name: cauchy,    kind: cauchy, gamma: 1.0}
+  - {name: contam,    kind: contam, eps: 0.10, scale_contam: 10.0}
+
+window_family: gaussian
+scale_mult: 1.5
+notes: "scale = scale_mult * MAD(LAD residuals)/0.6745; quick config (R=300)."
