@@ -1,0 +1,25 @@
+name: modern_baselines
+description: |
+  Referee (JSCS) Q6: add modern deviation-optimal heavy-tailed baselines --
+  adaptive Huber (Sun-Zhou-Fan 2020) and a Catoni-type estimator (Catoni 2012)
+  -- to the main comparison. Seed-matched to `full_mc` (same base_seed, regimes,
+  and per-replication RNG), so the MAE/catastrophic-failure numbers are directly
+  comparable cell-by-cell with Table 1. Also records the single pre-declared
+  DEFAULT weak-PMM (Gaussian window, sigma = MAD(LAD resid)/0.6745, scale_mult=1)
+  alongside OLS / LAD / Cauchy-MLE on the very same samples (referee Q1: a fixed
+  default rule, not a post-hoc bandwidth sweep).
+
+beta_true: [0.5, 1.0]
+sample_sizes: [64, 128, 256, 512, 1024]
+replications: 5000
+base_seed: 20260524          # identical to full_mc -> identical (x, y) samples
+
+regimes:
+  - {name: pure_cauchy,           kind: cauchy, gamma: 1.0}
+  - {name: contaminated_gaussian, kind: contam, eps: 0.10, scale_contam: 10.0}
+  - {name: student_t_df2,         kind: t, df: 2.0}
+  - {name: skewed_contam,         kind: skewed_contam, eps: 0.10, shift: 5.0, scale_contam: 1.0}
+  - {name: alpha_stable_skew,     kind: alpha_stable, alpha: 1.5, beta: 0.5}
+
+default_window: {family: gaussian, scale_mult: 1.0}
+scale_unit: "tau = tau_mult * MAD(LAD resid)/0.6745 * sqrt(n/log n); default weak-PMM scale = scale_mult * MAD/0.6745"

@@ -1,0 +1,23 @@
+name: adversarial_leverage
+description: |
+  JSCS referee Q7: push leverage harder than the design_stress panel (which used
+  a single 3%-at-+/-6 GOOD-leverage cell) to find where the redescending degree-1
+  weak PMM -- whose x-direction influence is unbounded -- degrades relative to the
+  high-breakdown S/MM estimators. Here the leverage points are BAD leverage: a
+  fraction `frac` of observations sit at x = +L with the response anchored at
+  y = beta0 (off the true line), so they pull the fitted slope toward zero. The
+  bulk is a light-noise clean line, so leverage is the only stress. We sweep the
+  contamination fraction and the leverage magnitude.
+
+beta_true: [0.5, 1.0]
+sample_size: 256
+replications: 300
+base_seed: 20260615
+bulk_sigma: 0.5            # clean-point noise N(0, bulk_sigma^2)
+
+# weak-PMM window (matches design_stress default)
+window_family: gaussian
+scale_mult: 1.5
+
+fracs: [0.0, 0.05, 0.10, 0.20, 0.30, 0.40]
+levs:  [6.0, 10.0, 20.0]

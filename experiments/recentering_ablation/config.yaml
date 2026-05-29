@@ -1,0 +1,22 @@
+name: recentering_ablation
+description: |
+  JSCS referee Q5: under asymmetric noise, (a) confirm the degree-2 skewness
+  term gives negligible intercept-bias correction over degree-1, (b) show that
+  window RE-CENTERING about a robust (mode) location DOES reduce the intercept
+  bias -- supporting the paper's claim that re-centering, not the polynomial
+  term, is the correct fix; and (c) check that the negative degree-2 result is
+  NOT an artifact of the LAD initialization or the MAD scale rule (sensitivity
+  over init in {lad, ols, median-slope} and scale in {mad, iqr}).
+
+beta_true: [0.5, 1.0]
+sample_sizes: [256, 1024]
+replications: 500
+base_seed: 20260620
+
+window_family: gaussian
+scale_mults: [1.0, 1.5]
+
+regimes:
+  - {name: skewed_contam, kind: skewed_contam, eps: 0.10, shift: 5.0, scale_contam: 1.0}
+  - {name: skew_t_df3,    kind: skew_t, df: 3.0, alpha_skew: 4.0}
+  - {name: alpha_stable,  kind: alpha_stable, alpha: 1.5, beta: 0.5}

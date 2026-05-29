@@ -911,3 +911,88 @@ def mm_estimator_regression(x: np.ndarray, y: np.ndarray, c_S: float = 1.547,
                     runtime_sec=time.perf_counter() - t0,
                     window_family="mm_estimator", window_scale=scale,
                     diagnostics={"m_scale": scale, "c_M": c_M, "s_beta": s_est.beta_hat})
+
+
+# ---------------------------------------------------------------------------
+# Modern heavy-tailed (deviation-optimal) baselines: adaptive Huber, Catoni.
+#
+# Referee request: position the weak-moment family against the sub-Gaussian
+# deviation literature (paper Sec. "Modern heavy-tailed regression"). Both use
+# a sample-size-adaptive robustification parameter tau ~ sigma * sqrt(n / t),
+# t = log n (Sun-Zhou-Fan 2020; Catoni 2012). Crucially both scores are
+# *non-redescending* (Huber's psi is monotone+bounded; Catoni's grows ~log|r|),
+# so unlike the redescending weak-moment members they down-weight but never hard-
+# reject gross outliers -- the trade-off the experiments quantify.
+# ---------------------------------------------------------------------------
+
+def _adaptive_tau(sc: float, n: int, tau_mult: float) -> float:
+    """Sun-Zhou-Fan robustification parameter tau = tau_mult * sigma * sqrt(n/log n)."""
+    t = max(np.log(max(n, 3)), 1.0)
+    return float(tau_mult) * sc * float(np.sqrt(max(n, 1) / t))
+
+
+def adaptive_huber_regression(x: np.ndarray, y: np.ndarray, tau_mult: float = 1.0,
+                              beta0: Optional[np.ndarray] = None) -> Estimate:
+    """Adaptive Huber regression (Sun, Zhou & Fan 2020).
+
+    Huber M-estimator with the *sample-size-adaptive* threshold
+    ``tau = tau_mult * (MAD/0.6745) * sqrt(n / log n)`` (vs the fixed
+    c = 1.345*sigma of the classical Huber in ``huber_regression``). The Huber
+    score is bounded and MONOTONE (non-redescending), giving sub-Gaussian
+    deviations under a finite (1+delta) moment but no hard outlier rejection.
+    """
+    b_lad = lad_regression(x, y).beta_hat if beta0 is None else np.asarray(beta0, float)
+    X = np.column_stack([np.ones_like(x), x])
+    sc = robust_scale_mad(y - X @ b_lad)
+    if sc <= 0.0:
+        return Estimate(beta_hat=b_lad, success=True,
+                        window_family="adaptive_huber", window_scale=0.0)
+    tau = _adaptive_tau(sc, len(y), tau_mult)
+
+    def weight_fn(r: np.ndarray) -> np.ndarray:
+        a = np.abs(r)
+        w = np.ones_like(r, dtype=float)
+        m = a > tau
+        w[m] = tau / np.maximum(a[m], 1e-15)
+        return w
+
+    beta, success, n_iter = _irwls_regression(x, y, weight_fn, b_lad)
+    return Estimate(beta_hat=beta, success=success, n_iter=n_iter,
+                    window_family="adaptive_huber", window_scale=float(tau),
+                    diagnostics={"tau": float(tau), "mad_scale": float(sc),
+                                 "tau_mult": float(tau_mult)})
+
+
+def catoni_regression(x: np.ndarray, y: np.ndarray, tau_mult: float = 1.0,
+                      beta0: Optional[np.ndarray] = None) -> Estimate:
+    """Catoni-type robust regression (Catoni 2012 influence function).
+
+    Solves ``sum_i tau * psi_C(r_i / tau) * X_i = 0`` with the Catoni influence
+    ``psi_C(u) = sign(u) * log(1 + |u| + u^2/2)`` and the same adaptive scale
+    ``tau = tau_mult * (MAD/0.6745) * sqrt(n / log n)`` as adaptive Huber. The
+    influence grows only logarithmically (soft, non-redescending), the
+    deviation-optimal alternative to a hard clip.
+    """
+    b_lad = lad_regression(x, y).beta_hat if beta0 is None else np.asarray(beta0, float)
+    X = np.column_stack([np.ones_like(x), x])
+    sc = robust_scale_mad(y - X @ b_lad)
+    if sc <= 0.0:
+        return Estimate(beta_hat=b_lad, success=True,
+                        window_family="catoni", window_scale=0.0)
+    tau = _adaptive_tau(sc, len(y), tau_mult)
+
+    def weight_fn(r: np.ndarray) -> np.ndarray:
+        u = r / tau
+        a = np.abs(u)
+        psi = np.sign(u) * np.log1p(a + 0.5 * u ** 2)   # Catoni influence
+        # IRLS weight w(r) so that w(r)*r = tau*psi_C(u): w = tau*psi/r = psi/u.
+        w = np.ones_like(r, dtype=float)
+        nz = a > 1e-12
+        w[nz] = psi[nz] / u[nz]
+        return np.clip(w, 0.0, 1.0)
+
+    beta, success, n_iter = _irwls_regression(x, y, weight_fn, b_lad)
+    return Estimate(beta_hat=beta, success=success, n_iter=n_iter,
+                    window_family="catoni", window_scale=float(tau),
+                    diagnostics={"tau": float(tau), "mad_scale": float(sc),
+                                 "tau_mult": float(tau_mult)})

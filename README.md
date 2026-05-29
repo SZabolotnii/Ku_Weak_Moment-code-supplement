@@ -38,18 +38,26 @@ finite-sample map. Window-scale sensitivity is reported as a feature, not hidden
 src/ku_weak_moment/   # core library
   windows.py            # kernels (Gaussian, Cauchy-like, Tukey, Hann) + robust scale
   moments.py            # weak moments / weak cumulants
-  estimators.py         # OLS, LAD, Huber, Tukey, Cauchy MLE, weak-PMM (deg 1/2/3)
+  estimators.py         # OLS, LAD, Huber, adaptive Huber, Catoni, Tukey, S/MM,
+                        #   Cauchy MLE, weak-PMM (deg 1/2/3), weak-CF
   inference.py          # asymptotic variance, influence function
   simulation.py         # seed grids, samplers (Cauchy, contaminated Gaussian, alpha-stable)
-  stable_competitor.py  # stable-law baselines
+  stable_competitor.py  # correctly-specified alpha-stable MLE baseline
 experiments/<name>/    # one directory per experiment
   config.yaml            # run manifest (quick + full configs)
   run.py                 # generates results + manifest.json
   verify.py              # checks acceptance criteria (pass/fail)
   plot.py                # paper figures
+reports/               # Lean verification report (lemma <-> paper <-> test map)
 tests/                 # pytest unit tests + invariants
 Lean/                  # Lean 4 verified deterministic backbone (§6.4 of the paper)
 ```
+
+The referee-driven experiments are `modern_baselines` (adaptive Huber + Catoni,
+seed-matched to the main MAE table), `adversarial_leverage` (where redescending
+scores break vs high-breakdown S/MM), and `recentering_ablation` (degree-2 vs
+window re-centering under asymmetry); `stable_competitor` adds the correctly
+specified alpha-stable MLE.
 
 ## Installation
 
@@ -104,6 +112,11 @@ with [elan](https://github.com/leanprover/elan)/Lake (toolchain pinned in
 lake exe cache get   # fetch prebuilt Mathlib oleans
 lake build           # build the WeakMoment library
 ```
+
+The verified lemmas, the paper statements they support, the numerical
+cross-checks, and the build status (**0 `sorry`, 0 `axiom`**; Lean and Mathlib
+`v4.26.0`) are tabulated in `reports/lean_theory_verification_report.md`
+(mirrored in Appendix C of the paper).
 
 ## Citing
 
